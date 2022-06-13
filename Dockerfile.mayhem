@@ -33,7 +33,7 @@ RUN ldd /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve | tr -s '[:
 
 FROM ubuntu:rolling as package
 
-COPY --from=devel /deps /deps
-COPY --from=devel /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve
+COPY --from=build /deps /deps
+COPY --from=build /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve
 ENV LD_LIBRARY_PATH=/deps
 

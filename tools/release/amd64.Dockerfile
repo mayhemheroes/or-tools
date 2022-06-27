@@ -1,7 +1,4 @@
-# Need a Centos 7 to avoid this:
-# https://github.com/google/or-tools/issues/2520#issuecomment-825119882
-# note: PEP 599 manylinux2014 is also based on Centos 7 which will reach End of Life (EOL) on June 30th, 2024
-FROM centos:7 AS env
+FROM quay.io/pypa/manylinux2014_x86_64:latest AS env
 
 #############
 ##  SETUP  ##
@@ -12,17 +9,8 @@ RUN yum -y update \
 && yum clean all \
 && rm -rf /var/cache/yum
 
-# Bump to gcc-11
-RUN yum -y update \
-&& yum -y install centos-release-scl \
-&& yum -y install devtoolset-11 \
-&& yum clean all \
-&& echo "source /opt/rh/devtoolset-11/enable" >> /etc/bashrc
-SHELL ["/usr/bin/bash", "--login", "-c"]
-
-ENTRYPOINT ["/usr/bin/bash", "--login", "-c"]
-CMD ["/usr/bin/bash", "--login"]
-# RUN g++ --version
+ENTRYPOINT ["/usr/bin/bash", "-c"]
+CMD ["/usr/bin/bash"]
 
 # Install CMake 3.23.2
 RUN ARCH=$(uname -m) \
@@ -66,12 +54,6 @@ RUN yum -y update \
 && yum -y install epel-release \
 && yum repolist \
 && yum -y install openssl11
-
-# Install Python
-RUN yum -y update \
-&& yum -y install python3 python3-devel python3-pip numpy \
-&& yum clean all \
-&& rm -rf /var/cache/yum
 
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

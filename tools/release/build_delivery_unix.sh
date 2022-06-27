@@ -22,7 +22,7 @@ function help() {
 ${BOLD}NAME${RESET}
 \t$NAME - Build delivery using an ${BOLD}Centos 7 docker image${RESET}.
 ${BOLD}SYNOPSIS${RESET}
-\t$NAME [-h|--help] [examples|dotnet|java|python|all|reset]
+\t$NAME [-h|--help|help] [examples|dotnet|java|python|all|reset]
 ${BOLD}DESCRIPTION${RESET}
 \tBuild Google OR-Tools deliveries.
 \tYou ${BOLD}MUST${RESET} define the following variables before running this script:
@@ -131,7 +131,7 @@ function build_examples() {
 # Main
 function main() {
   case ${1} in
-    -h | --help)
+    -h | --help | help)
       help; exit ;;
   esac
 

@@ -13,11 +13,10 @@ ENTRYPOINT ["/usr/bin/bash", "-c"]
 CMD ["/usr/bin/bash"]
 
 # Install CMake 3.23.2
-RUN ARCH=$(uname -m) \
-&& wget -q --no-check-certificate "https://cmake.org/files/v3.23/cmake-3.23.2-linux-${ARCH}.sh" \
-&& chmod a+x cmake-3.23.2-linux-${ARCH}.sh \
-&& ./cmake-3.23.2-linux-${ARCH}.sh --prefix=/usr/local/ --skip-license \
-&& rm cmake-3.23.2-linux-${ARCH}.sh
+RUN wget -q --no-check-certificate "https://cmake.org/files/v3.23/cmake-3.23.2-linux-x86_64.sh" \
+&& chmod a+x cmake-3.23.2-linux-x86_64.sh \
+&& ./cmake-3.23.2-linux-x86_64.sh --prefix=/usr --skip-license \
+&& rm cmake-3.23.2-linux-x86_64.sh
 
 # Install Swig 4.0.2
 RUN curl --location-trusted \

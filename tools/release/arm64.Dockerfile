@@ -2,33 +2,23 @@
 # https://github.com/multiarch/qemu-user-static#getting-started
 FROM quay.io/pypa/manylinux2014_aarch64:latest AS env
 
+#############
+##  SETUP  ##
+#############
 RUN yum -y update \
-&& yum -y install \
- autoconf \
- curl wget \
- gawk \
- gcc-c++ \
- git \
- libtool \
- make \
- openssl-devel \
- patch \
- pcre-devel \
- redhat-lsb \
- subversion \
- which \
- zlib-devel \
- unzip zip \
+&& yum -y groupinstall 'Development Tools' \
+&& yum -y install wget curl pcre-devel openssl redhat-lsb-core pkgconfig autoconf libtool zlib-devel which \
 && yum clean all \
 && rm -rf /var/cache/yum
+
 ENTRYPOINT ["/usr/bin/bash", "-c"]
 CMD ["/usr/bin/bash"]
 
-# Install CMake 3.22.2
-RUN wget -q --no-check-certificate "https://cmake.org/files/v3.22/cmake-3.22.2-linux-aarch64.sh" \
-&& chmod a+x cmake-3.22.2-linux-aarch64.sh \
-&& ./cmake-3.22.2-linux-aarch64.sh --prefix=/usr --skip-license \
-&& rm cmake-3.22.2-linux-aarch64.sh
+# Install CMake 3.23.2
+RUN wget -q --no-check-certificate "https://cmake.org/files/v3.23/cmake-3.23.2-linux-aarch64.sh" \
+&& chmod a+x cmake-3.23.2-linux-aarch64.sh \
+&& ./cmake-3.23.2-linux-aarch64.sh --prefix=/usr --skip-license \
+&& rm cmake-3.23.2-linux-aarch64.sh
 
 # Install Swig 4.0.2
 RUN curl --location-trusted \
@@ -43,6 +33,29 @@ RUN curl --location-trusted \
 && cd .. \
 && rm -rf swig-4.0.2
 
+# Install .Net
+# see https://docs.microsoft.com/en-us/dotnet/core/install/linux-centos#centos-7-
+RUN rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm \
+&& yum -y update \
+&& yum -y install dotnet-sdk-3.1 dotnet-sdk-6.0 \
+&& yum clean all \
+&& rm -rf /var/cache/yum
+# Trigger first run experience by running arbitrary cmd
+RUN dotnet --info
+
+# Install Java 8 SDK
+RUN yum -y update \
+&& yum -y install java-1.8.0-openjdk java-1.8.0-openjdk-devel maven \
+&& yum clean all \
+&& rm -rf /var/cache/yum
+ENV JAVA_HOME=/usr/lib/jvm/java
+
+# Openssl 1.1
+RUN yum -y update \
+&& yum -y install epel-release \
+&& yum repolist \
+&& yum -y install openssl11
+
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -50,29 +63,31 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ##  OR-TOOLS  ##
 ################
 FROM env AS devel
-ENV GIT_URL https://github.com/google/or-tools
-
-ARG GIT_BRANCH
-ENV GIT_BRANCH ${GIT_BRANCH:-main}
-ARG GIT_SHA1
-ENV GIT_SHA1 ${GIT_SHA1:-unknown}
+WORKDIR /root
 
 # Download sources
-# use GIT_SHA1 to modify the command
+# use ORTOOLS_GIT_SHA1 to modify the command
 # i.e. avoid docker reusing the cache when new commit is pushed
-RUN git clone -b "${GIT_BRANCH}" --single-branch "$GIT_URL" /project \
-&& cd /project \
-&& git reset --hard "${GIT_SHA1}"
-WORKDIR /project
+ARG ORTOOLS_GIT_BRANCH
+ENV ORTOOLS_GIT_BRANCH ${ORTOOLS_GIT_BRANCH:-main}
+ARG ORTOOLS_GIT_SHA1
+ENV ORTOOLS_GIT_SHA1 ${ORTOOLS_GIT_SHA1:-unknown}
+RUN git clone -b "${ORTOOLS_GIT_BRANCH}" --single-branch https://github.com/google/or-tools \
+&& cd or-tools \
+&& git reset --hard "${ORTOOLS_GIT_SHA1}"
 
-COPY build-manylinux.sh .
-RUN chmod a+x "build-manylinux.sh"
+# Build delivery
+FROM devel AS delivery
+WORKDIR /root/or-tools
 
-FROM devel AS build
-ENV PLATFORM aarch64
-ARG PYTHON_VERSION
-ENV PYTHON_VERSION ${PYTHON_VERSION:-3}
-RUN ./build-manylinux.sh build
+ENV GPG_ARGS ""
 
-FROM build as test
-RUN ./build-manylinux.sh test
+ARG ORTOOLS_TOKEN
+ENV ORTOOLS_TOKEN ${ORTOOLS_TOKEN}
+ARG ORTOOLS_DELIVERY
+ENV ORTOOLS_DELIVERY ${ORTOOLS_DELIVERY:-all}
+RUN ./tools/release/build_delivery_linux.sh "${ORTOOLS_DELIVERY}"
+
+# Publish delivery
+FROM delivery AS publish
+RUN ./tools/release/publish_delivery_linux.sh "${ORTOOLS_DELIVERY}"

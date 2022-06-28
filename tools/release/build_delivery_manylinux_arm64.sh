@@ -74,21 +74,24 @@ function build_delivery() {
   cd "${RELEASE_DIR}" || exit 2
 
   # Build env
-  docker build --tag "${ORTOOLS_IMG}:env" \
+  docker build --platform linux/arm64 \
+    --tag "${ORTOOLS_IMG}:env" \
     --build-arg ORTOOLS_GIT_BRANCH="${ORTOOLS_BRANCH}" \
     --build-arg ORTOOLS_GIT_SHA1="${ORTOOLS_SHA1}" \
     --target=env \
     -f "${DOCKERFILE}" .
 
   # Build devel
-  docker build --tag "${ORTOOLS_IMG}:devel" \
+  docker build --platform linux/arm64 \
+    --tag "${ORTOOLS_IMG}:devel" \
     --build-arg ORTOOLS_GIT_BRANCH="${ORTOOLS_BRANCH}" \
     --build-arg ORTOOLS_GIT_SHA1="${ORTOOLS_SHA1}" \
     --target=devel \
     -f "${DOCKERFILE}" .
 
   # Build delivery
-  docker build --tag "${ORTOOLS_IMG}:${ORTOOLS_DELIVERY}" \
+  docker build --platform linux/arm64 \
+    --tag "${ORTOOLS_IMG}:${ORTOOLS_DELIVERY}" \
     --build-arg ORTOOLS_GIT_BRANCH="${ORTOOLS_BRANCH}" \
     --build-arg ORTOOLS_GIT_SHA1="${ORTOOLS_SHA1}" \
     --build-arg ORTOOLS_TOKEN="${ORTOOLS_TOKEN}" \

@@ -28,12 +28,5 @@ FROM devel AS build
 RUN bazel version
 RUN bazel build --curses=no --cxxopt=-std=c++20 --copt='-Wno-sign-compare' //...:all
 
-RUN mkdir -p /deps
-RUN ldd /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve | tr -s '[:blank:]' '\n' | grep '^/' | xargs -I % sh -c 'cp % /deps;'
-
 FROM ubuntu:rolling as package
-
-COPY --from=build /deps /deps
-COPY --from=build /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve
-ENV LD_LIBRARY_PATH=/deps
-
+COPY --from=build /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve /

@@ -1,9 +1,6 @@
 project: or-tools
 target: mathopt-solve
-testsuite:
-  - file://examples/data/tests/test2.mps
+
 cmds:
     - cmd: /mathopt_solve --input_file @@
-      filepath: /test.mps
-      env:
-        DISABLE_SMOKETEST: '1'
+

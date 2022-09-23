@@ -30,3 +30,5 @@ RUN bazel build --curses=no --cxxopt=-std=c++20 --copt='-Wno-sign-compare' //...
 
 FROM ubuntu:rolling as package
 COPY --from=build /home/project/bazel-bin/ortools/math_opt/tools/mathopt_solve /
+RUN mkdir /testsuite
+COPY --from=build /home/project/examples/tests/maximization.mps /testsuite

@@ -2,5 +2,6 @@ project: or-tools
 target: mathopt-solve
 
 cmds:
-    - cmd: /mathopt_solve --input_file @@
+    - cmd: /mathopt_solve --input_file /test.mps
+      filepath: /test.mps
 

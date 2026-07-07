@@ -1,0 +1,9 @@
+project: or-tools
+target: mathopt-solve
+
+cmds:
+  - cmd: /mayhem/mathopt-solve
+    libfuzzer: true
+    env:
+      TMPDIR: /dev/shm
+      HOME: /dev/shm

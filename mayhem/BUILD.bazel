@@ -1,0 +1,30 @@
+# Mayhem fuzz targets (additive integration layer).
+
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+FUZZ_DEPS = [
+    "//ortools/base",
+    "//ortools/math_opt/cpp:math_opt",
+    "//ortools/math_opt/io:mps_converter",
+    "//ortools/math_opt/solvers:gscip_solver",
+    "@abseil-cpp//absl/time",
+]
+
+cc_binary(
+    name = "mathopt-solve",
+    srcs = [
+        "asan_options.c",
+        "fuzz_mathopt_solve.cc",
+    ],
+    deps = FUZZ_DEPS,
+)
+
+cc_binary(
+    name = "mathopt-solve-standalone",
+    srcs = [
+        "asan_options.c",
+        "fuzz_mathopt_solve.cc",
+        "standalone_driver.c",
+    ],
+    deps = FUZZ_DEPS,
+)
